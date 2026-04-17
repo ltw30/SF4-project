@@ -1,7 +1,7 @@
 # LLM 응답 방식 비교 — RAG-lite vs Text-to-SQL
 
-> **문서 버전:** 2026-04-15
-> **관련 문서:** `LLM_CONTEXT.md` (기술 구현 상세)
+> **문서 버전:** 2026-04-17 (ver02 · Spring Boot 포팅 반영)
+> **관련 문서:** `LLM_CONTEXT.md` (기술 구현 상세), `RUN_GUIDE.md` (실행 방법)
 
 챗봇은 두 가지 응답 방식을 지원하며, 관리자 설정(⑥ LLM 모델 선택 → 응답 방식)에서 선택할 수 있습니다.
 
@@ -131,14 +131,80 @@ Text-to-SQL 모드는 실패할 수 있으며, 실패 시 폴백 없이 **에러
 
 ---
 
-## 8. 관련 코드 위치
+## 8. 관련 코드 위치 (ver02 · Spring Boot)
 
 | 항목 | 파일 |
 |---|---|
-| 모드 분기 진입점 | `backend/src/routes/chat.js` → `router.post('/')` |
-| RAG-lite 핸들러 | `chat.js` → `handleRagLite()` |
-| Text-to-SQL 핸들러 | `chat.js` → `handleTextToSql()` |
-| 스키마 프롬프트 | `chat.js` → `SCHEMA_PROMPT` |
-| SQL 검증 | `chat.js` → `validateSql()`, `ALLOWED_TABLES` |
-| 설정 시드 | `backend/src/db/init.js` → `DEFAULT_SETTINGS` (llm_mode) |
-| UI 라디오 버튼 | `frontend/src/views/Settings.vue` → ⑥ LLM 섹션 |
+| 모드 분기 진입점 | `backend/src/main/java/com/evernex/bms/controller/ChatController.java` → `@PostMapping("")` |
+| RAG-lite 핸들러 | `service/ChatService.java` → `handleRagLite()` |
+| Text-to-SQL 핸들러 | `service/ChatService.java` → `handleTextToSql()` |
+| 스키마 프롬프트 | `service/ChatService.java` → `SCHEMA_PROMPT` 상수 |
+| SQL 검증 | `service/ChatService.java` → `validateSql()`, `ALLOWED_TABLES` |
+| LLM HTTP 클라이언트 | `service/LlmClient.java` (HTTP/1.1 강제) |
+| 설정 시드 | `db/DataSeeder.java` → `seedIfEmpty()` (키: `llm_mode`) |
+| 설정 읽기 | `service/SettingsService.java` → `get(String key)` |
+| UI 라디오 버튼 | `frontend/src/views/Settings.vue` → ⑥ LLM 섹션 (원본과 동일) |
+
+> 원본 Node 버전의 대응 파일: `backend/src/routes/chat.js`, `backend/src/db/init.js`.
+
+---
+
+## 9. LLM 제공자 선택 (ver02 추가)
+
+로컬 LM Studio 외에 **OpenAI / Google Gemini 유료 API**도 사용할 수 있습니다.
+
+| 제공자 | 설정 키 | 엔드포인트 |
+|--------|---------|-----------|
+| LM Studio (로컬) | `llm_provider=lm_studio` | `llm_base_url` (기본 `http://127.0.0.1:1234`) |
+| OpenAI | `llm_provider=openai` | `https://api.openai.com/v1/chat/completions` (+ `llm_openai_api_key`) |
+| Google Gemini | `llm_provider=gemini` | `https://generativelanguage.googleapis.com/v1beta/openai/chat/completions` (+ `llm_gemini_api_key`) |
+
+- 관리자 설정 → ⑥ LLM 섹션에서 제공자 선택 시 입력란이 자동 전환됩니다 (URL vs API 키).
+- API 키는 UI에서 마스킹되며, 서버 측 `admin_settings` 테이블에 저장됩니다.
+- 제공자별 모델 목록:
+  - OpenAI: `gpt-4o`, `gpt-4o-mini`, `gpt-4-turbo`, `gpt-4.1`, `gpt-4.1-mini`, `gpt-3.5-turbo`, `o1-mini`, `o3-mini`
+  - Gemini: `gemini-2.0-flash`, `gemini-2.0-flash-lite`, `gemini-1.5-flash`, `gemini-1.5-flash-8b`, `gemini-1.5-pro`
+  - LM Studio: `GET /v1/models` 호출로 동적 조회
+- 공통 OpenAI 호환 `/chat/completions` 스키마를 사용하므로 호출 코드는 `LlmClient.call(Config, system, user, maxTokens)` 1곳으로 통합.
+
+---
+
+## 10. 리포트에 SQL 포함 (Text-to-SQL 모드)
+
+Text-to-SQL 모드로 답변을 받은 뒤 **리포트 생성** 버튼을 누르면, 챗봇이 실행한 SQL·근거·조회 건수가 리포트에 함께 저장됩니다.
+
+**데이터 흐름:**
+
+```
+[챗봇] Text-to-SQL 응답 수신
+   └→ history.push({ role: 'assistant', content, context })
+           (context = { mode, sql, reasoning, rows_count, rows })
+
+[리포트 생성] POST /api/v1/chat/report
+   └→ assistant 메시지에서 sql/reasoning/rows_count 추출 → messages[].sql 필드로 전송
+
+[백엔드 저장] reports.content.messages[]
+   └→ 각 assistant 메시지에 { role, content, sql, reasoning, rows_count }
+
+[리포트 상세] Reports.vue
+   └→ "🗄️ 실행된 SQL 쿼리" 섹션 표시 (근거 + 쿼리 결과 건수 포함)
+   └→ 원본 대화 섹션에도 SQL 인라인 표시
+   └→ Markdown 다운로드 시 SQL 블록 포함
+```
+
+**UI 위치:**
+- 리포트 상세 화면: `reports.sectionSql` 섹션 (SQL 개별 카드 · 근거 인용 · rows 수)
+- Markdown 다운로드: `## 실행된 SQL 쿼리` 섹션 + 각 assistant 답변 하단에 `sql` 코드블록
+
+**관련 코드:**
+
+| 항목 | 파일:라인 |
+|---|---|
+| 백엔드 context 생성 | `service/ChatService.java:387-392` (`handleTextToSql`) |
+| 챗봇 history 저장 | `components/Chatbot.vue:42` |
+| 리포트 전송 payload | `components/Chatbot.vue:86-90` |
+| 리포트 저장 시 SQL 보존 | `controller/ChatController.java:112-126` |
+| SQL 추출 (계산 속성) | `views/Reports.vue:52-61` (`sqlQueries`) |
+| SQL 섹션 렌더링 | `views/Reports.vue:275-293` |
+| 대화 내 SQL 인라인 | `views/Reports.vue:311-312` |
+| Markdown SQL 포함 | `views/Reports.vue:94-112` (`downloadMd`) |

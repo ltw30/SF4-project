@@ -18,4 +18,7 @@
 | 정상 확률 변경 | ✅ | ❌ |
 | 배송국가 관리 | ✅ | ❌ |
 
-> 비밀번호는 bcrypt로 해싱되어 SQLite에 저장됩니다. 최초 실행 시 자동으로 시드됩니다.
+> 비밀번호는 bcrypt 로 해싱되어 SQLite 에 저장됩니다.
+> ver02 에서는 Spring Security 의 `BCryptPasswordEncoder` 로 해싱하며,
+> 최초 실행 시 `backend/src/main/java/com/evernex/bms/db/DataSeeder.java` 가 자동 시드합니다.
+> DB 를 초기화하려면 `backend/database/bms.db` 를 삭제하고 백엔드를 재시작하세요.
