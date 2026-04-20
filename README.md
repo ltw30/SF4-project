@@ -429,12 +429,12 @@ Vercel(프론트엔드) + Render(백엔드) 사용
 
 ```
 1. Render → New → Blueprint → 이 저장소 연결
-   → render.yaml 자동 감지 → bms-backend 배포 (~10분)
+   → render.yaml 자동 감지 → bms-backend 배포
 
 2. Vercel → New Project → 이 저장소 Import
    → Root Directory: frontend
    → 환경 변수: VITE_API_BASE_URL = https://<render-url>/api/v1
-   → Deploy (~2분)
+   → Deploy
 ```
 
 ---
