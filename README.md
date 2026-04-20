@@ -29,9 +29,6 @@ https://smartfactory-bms-project.vercel.app/login
 - **백엔드**: 차량이 자동 생성되고, 6단계 배터리 검사(SOC → SOH → SOP → 팩전압 → 셀온도 → 셀전압)를 거쳐 출고되는 상태머신을 500ms 주기로 시뮬레이션
 - **프론트엔드**: 실시간 대시보드, 차량·경보·사용자 관리, LLM 챗봇을 통한 자연어 데이터 질의
 
-> 기존 Node.js + Express 백엔드를 **Java 17 + Spring Boot 3.3.4** 로 포팅한 버전입니다.  
-> 프론트엔드(Vue 3)와 API 계약, DB 스키마는 원본과 동일하게 유지됩니다.
-
 ---
 
 ## 주요 기능
