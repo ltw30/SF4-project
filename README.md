@@ -212,12 +212,6 @@ https://smartfactory-bms-project.vercel.app/login
 - Node.js 20+
 - (선택) LM Studio — 챗봇 기능 로컬 테스트 시
 
-
-
-```
-
-
-
 ---
 
 ## 환경 변수
