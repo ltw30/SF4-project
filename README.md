@@ -221,7 +221,6 @@ https://smartfactory-bms-project.vercel.app/login
 | 변수 | 기본값 | 설명 |
 |------|--------|------|
 | `PORT` | `3000` | HTTP 서버 포트 |
-| `DB_PATH` | `./database/bms.db` | SQLite 파일 경로 |
 | `DB_URL` | `jdbc:mysql://localhost:3306/bms` | MySQL 연결 URL |
 | `DB_USERNAME` | `root`                            | DB 사용자명 |
 | `DB_PASSWORD` |  | DB 비밀번호
