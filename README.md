@@ -2,8 +2,7 @@
 
 배터리 관리 시스템(BMS) 품질검사 대시보드 — Spring Boot 3 + Vue 3 풀스택 프로젝트
 
-[![Backend CI](https://github.com/m-kim77/smartfactory-BMS-project/actions/workflows/backend-ci.yml/badge.svg)](https://github.com/m-kim77/smartfactory-BMS-project/actions/workflows/backend-ci.yml)
-[![Frontend CI](https://github.com/m-kim77/smartfactory-BMS-project/actions/workflows/frontend-ci.yml/badge.svg)](https://github.com/m-kim77/smartfactory-BMS-project/actions/workflows/frontend-ci.yml)
+https://smartfactory-bms-project.vercel.app/login
 
 ---
 
