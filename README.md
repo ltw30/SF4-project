@@ -83,7 +83,7 @@ https://smartfactory-bms-project.vercel.app/login
 | Java | 17 |
 | Spring Boot | 3.3.4 |
 | Spring MVC + JdbcTemplate | — |
-| SQLite JDBC | 3.46.1.3 |
+| MySQL Connector/J | 8.0+ |
 | JJWT | 0.12.6 |
 | Spring Security Crypto (BCrypt) | — |
 | Maven | 3.9+ |
@@ -105,7 +105,7 @@ https://smartfactory-bms-project.vercel.app/login
 |------|--------|
 | 프론트엔드 배포 | Vercel Hobby |
 | 백엔드 배포 | Render Free Web (Docker) |
-| 데이터베이스 | SQLite (컨테이너 내 파일) |
+| 데이터베이스 | MySQL |
 | CI/CD | GitHub Actions |
 
 ---
@@ -222,6 +222,9 @@ https://smartfactory-bms-project.vercel.app/login
 |------|--------|------|
 | `PORT` | `3000` | HTTP 서버 포트 |
 | `DB_PATH` | `./database/bms.db` | SQLite 파일 경로 |
+| `DB_URL` | `jdbc:mysql://localhost:3306/bms` | MySQL 연결 URL |
+| `DB_USERNAME` | `root`                            | DB 사용자명 |
+| `DB_PASSWORD` |  | DB 비밀번호
 | `JWT_SECRET` | (개발용 기본값) | JWT 서명 키 — 운영 시 32자+ 랜덤 문자열로 교체 |
 | `LLM_BASE_URL` | `http://127.0.0.1:1234` | LM Studio 또는 OpenAI 엔드포인트 |
 | `LLM_MODEL` | `local-model` | 사용할 LLM 모델명 |
@@ -317,8 +320,7 @@ https://smartfactory-bms-project.vercel.app/login
 
 ## 데이터베이스 스키마
 
-SQLite를 사용하며 애플리케이션 시작 시 `SchemaInitializer`가 테이블을 자동 생성합니다.  
-프로덕션용 MySQL DDL은 `sql/schema.sql` 참고.
+MySQL을 사용하며 sql/schema.sql의 DDL로 테이블을 생성합니다.
 
 ### 주요 테이블 (16개)
 
@@ -398,7 +400,7 @@ SHIPMENT_COMPLETE (출고 완료)
 - LLM에 컨텍스트와 함께 질문을 전달하여 자연어 답변 생성
 
 **Text-to-SQL** (`text_to_sql`)
-1. 자연어 질문 → LLM이 SQLite SELECT 문 생성
+1. 자연어 질문 → LLM이 MySQL SELECT 문 생성
 2. SQL 검증 (SELECT만 허용, 테이블 화이트리스트, 공장 권한 필터 자동 삽입)
 3. DB 실행 → 결과를 LLM이 다시 자연어로 해석
 
